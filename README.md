@@ -1,6 +1,6 @@
 # Core v2 Management Tool
 
-## Installation
+## Installation 
 
 ```sh
 git clone https://github.com/geopsllc/core-control -b ts-rebrand
