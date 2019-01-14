@@ -211,6 +211,8 @@ install_core () {
     cp -rf "$core/packages/core/lib/config/$1" "$data" > /dev/null 2>&1
     cp "$core/packages/crypto/lib/networks/$name/$1.json" "$data/$1/network.json" > /dev/null 2>&1
   else
+    find . -type f -exec sed -i "s/\.core\//\.$name\//g" {} +
+    find . -type f -exec sed -i "s/\~\/core/\~\/${name}-core/g" {} +
     yarn setup > /dev/null 2>&1
     cp -rf "$core/packages/core/src/config/$1" "$data" > /dev/null 2>&1
   fi
@@ -220,28 +222,28 @@ install_core () {
   local envFile="$data/.env"
   touch "$envFile"
 
-  echo "${token}_LOG_LEVEL=$log_level" >> "$envFile" 2>&1
-  echo "${token}_DB_HOST=localhost" >> "$envFile" 2>&1
-  echo "${token}_DB_PORT=5432" >> "$envFile" 2>&1
-  echo "${token}_DB_USERNAME=$USER" >> "$envFile" 2>&1
-  echo "${token}_DB_PASSWORD=password" >> "$envFile" 2>&1
-  echo "${token}_DB_DATABASE=${name}_$1" >> "$envFile" 2>&1
-  echo "${token}_P2P_HOST=0.0.0.0" >> "$envFile" 2>&1
+  echo "CORE_LOG_LEVEL=$log_level" >> "$envFile" 2>&1
+  echo "CORE_DB_HOST=localhost" >> "$envFile" 2>&1
+  echo "CORE_DB_PORT=5432" >> "$envFile" 2>&1
+  echo "CORE_DB_USERNAME=$USER" >> "$envFile" 2>&1
+  echo "CORE_DB_PASSWORD=password" >> "$envFile" 2>&1
+  echo "CORE_DB_DATABASE=${name}_$1" >> "$envFile" 2>&1
+  echo "CORE_P2P_HOST=0.0.0.0" >> "$envFile" 2>&1
 
   if [ "$1" = "mainnet" ]; then
-    echo "${token}_P2P_PORT=$mainnet_port" >> "$envFile" 2>&1
+    echo "CORE_P2P_PORT=$mainnet_port" >> "$envFile" 2>&1
   else
-    echo "${token}_P2P_PORT=$devnet_port" >> "$envFile" 2>&1
+    echo "CORE_P2P_PORT=$devnet_port" >> "$envFile" 2>&1
   fi
 
-  echo "${token}_API_HOST=0.0.0.0" >> "$envFile" 2>&1
-  echo "${token}_API_PORT=$api_port" >> "$envFile" 2>&1
-  echo "${token}_WEBHOOKS_HOST=0.0.0.0" >> "$envFile" 2>&1
-  echo "${token}_WEBHOOKS_PORT=$wh_port" >> "$envFile" 2>&1
-  echo "${token}_GRAPHQL_HOST=0.0.0.0" >> "$envFile" 2>&1
-  echo "${token}_GRAPHQL_PORT=$gql_port" >> "$envFile" 2>&1
-  echo "${token}_JSONRPC_HOST=0.0.0.0" >> "$envFile" 2>&1
-  echo "${token}_JSONRPC_PORT=$rpc_port" >> "$envFile" 2>&1
+  echo "CORE_API_HOST=0.0.0.0" >> "$envFile" 2>&1
+  echo "CORE_API_PORT=$api_port" >> "$envFile" 2>&1
+  echo "CORE_WEBHOOKS_HOST=0.0.0.0" >> "$envFile" 2>&1
+  echo "CORE_WEBHOOKS_PORT=$wh_port" >> "$envFile" 2>&1
+  echo "CORE_GRAPHQL_HOST=0.0.0.0" >> "$envFile" 2>&1
+  echo "CORE_GRAPHQL_PORT=$gql_port" >> "$envFile" 2>&1
+  echo "CORE_JSONRPC_HOST=0.0.0.0" >> "$envFile" 2>&1
+  echo "CORE_JSONRPC_PORT=$rpc_port" >> "$envFile" 2>&1
 }
 
 update () {
