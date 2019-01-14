@@ -37,9 +37,7 @@ start () {
     local fstatus=$(pm2status "${name}-core-forger" | awk '{print $13}')
     local rstatus=$(pm2status "${name}-core-relay" | awk '{print $13}')
 
-    if [[ "$rstatus" != "online" && "$network" = "mainnet" ]]; then
-      pm2 --name "${name}-core-relay" start $core/packages/core/bin/$name -- relay --config $data/config --network $network > /dev/null 2>&1
-    elif [[ "$rstatus" != "online" && "$network" = "devnet" ]]; then
+    if [ "$rstatus" != "online" ]; then
       pm2 --name "${name}-core-relay" start $core/packages/core/dist/index.js -- relay --config $data/config --network $network > /dev/null 2>&1
     else
       echo -e "\nProcess relay already running. Skipping..."
@@ -47,9 +45,7 @@ start () {
 
     if [ "$secrets" = "[]" ]; then
       echo -e "\nDelegate secret is missing. Forger start aborted!"
-    elif [[ "$fstatus" != "online" && "$network" = "mainnet" ]]; then
-      pm2 --name "${name}-core-forger" start $core/packages/core/bin/$name -- forger --config $data/config --network $network > /dev/null 2>&1
-    elif [[ "$fstatus" != "online" && "$network" = "devnet" ]]; then
+    elif [ "$fstatus" != "online" ]; then
       pm2 --name "${name}-core-forger" start $core/packages/core/dist/index.js -- forger --config $data/config --network $network > /dev/null 2>&1
     else
       echo -e "\nProcess forger already running. Skipping..."
@@ -67,9 +63,7 @@ start () {
 
     if [[ "$secrets" = "[]" && "$1" = "forger" ]]; then
       echo -e "\nDelegate secret is missing. Forger start aborted!"
-    elif [[ "$pstatus" != "online" && "$network" = "mainnet" ]]; then
-      pm2 --name "${name}-core-$1" start $core/packages/core/bin/$name -- $1 --config $data/config --network $network > /dev/null 2>&1
-    elif [[ "$pstatus" != "online" && "$network" = "devnet" ]]; then
+    elif [ "$pstatus" != "online" ]; then
       pm2 --name "${name}-core-$1" start $core/packages/core/dist/index.js -- $1 --config $data/config --network $network > /dev/null 2>&1
     else
       echo -e "\nProcess $1 already running. Skipping..."
@@ -196,7 +190,7 @@ install_db () {
 install_core () {
 
   if [ "$1" = "mainnet" ]; then
-    git clone $repo $core > /dev/null 2>&1
+    git clone $repo $core -b $devbranch > /dev/null 2>&1
   else
     git clone $repo $core -b $devbranch > /dev/null 2>&1
   fi
@@ -205,18 +199,12 @@ install_core () {
   sudo rm -rf $HOME/.config > /dev/null 2>&1
   cd $core > /dev/null 2>&1
 
-  if [ "$1" = "mainnet" ]; then
-    lerna clean -y > /dev/null 2>&1
-    lerna bootstrap > /dev/null 2>&1
-    cp -rf "$core/packages/core/lib/config/$1" "$data" > /dev/null 2>&1
-    cp "$core/packages/crypto/lib/networks/$name/$1.json" "$data/$1/network.json" > /dev/null 2>&1
-  else
-    find . -type f -exec sed -i "s/\.core\//\.$name\//g" {} +
-    find . -type f -exec sed -i "s/\~\/core/\~\/${name}-core/g" {} +
-    yarn setup > /dev/null 2>&1
-    cp -rf "$core/packages/core/src/config/$1" "$data" > /dev/null 2>&1
-  fi
+  find . -type f -exec sed -i "s/\.core\//\.$name\//g" {} +
+  find . -type f -exec sed -i "s/\~\/core/\~\/${name}-core/g" {} +
 
+  yarn setup > /dev/null 2>&1
+  
+  cp -rf "$core/packages/core/src/config/$1" "$data" > /dev/null 2>&1
   mv "$data/$1" "$data/config" > /dev/null 2>&1
 
   local envFile="$data/.env"
@@ -249,15 +237,8 @@ install_core () {
 update () {
 
   cd $core > /dev/null 2>&1
-
-  if [ "$network" = "mainnet" ]; then
-    git pull > /dev/null 2>&1
-    lerna clean -y > /dev/null 2>&1
-    lerna bootstrap > /dev/null 2>&1
-  else
-    git pull > /dev/null 2>&1
-    yarn setup > /dev/null 2>&1
-  fi
+  git pull > /dev/null 2>&1
+  yarn setup > /dev/null 2>&1
 
   local fstatus=$(pm2status "${name}-core-forger" | awk '{print $13}')
   local rstatus=$(pm2status "${name}-core-relay" | awk '{print $13}')
@@ -277,10 +258,12 @@ remove () {
   pm2 delete ${name}-core-forger > /dev/null 2>&1
   pm2 delete ${name}-core-relay > /dev/null 2>&1
   pm2 save > /dev/null 2>&1
+
   rm -rf $core && rm -rf $data > /dev/null 2>&1
   sudo rm -rf $HOME/.config > /dev/null 2>&1
   dropdb ${name}_$network > /dev/null 2>&1
   sudo ufw delete allow ${api_port}/tcp > /dev/null 2>&1
+  
   if [ "$network" = "mainnet" ]; then
     sudo ufw delete allow ${mainnet_port}/tcp > /dev/null 2>&1
   else
@@ -293,14 +276,7 @@ config_reset () {
 
   stop all > /dev/null 2>&1
   rm -rf $data/config > /dev/null 2>&1
-
-  if [ "$network" = "mainnet" ]; then
-    cp -rf "$core/packages/core/lib/config/$network" "$data" > /dev/null 2>&1
-    cp "$core/packages/crypto/lib/networks/$name/$network.json" "$data/$network/network.json" > /dev/null 2>&1
-  else
-    cp -rf "$core/packages/core/src/config/$network" "$data" > /dev/null 2>&1
-  fi
-
+  cp -rf "$core/packages/core/src/config/$network" "$data" > /dev/null 2>&1
   mv "$data/$network" "$data/config" > /dev/null 2>&1
 
 }
