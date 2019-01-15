@@ -199,8 +199,8 @@ install_core () {
   sudo rm -rf $HOME/.config > /dev/null 2>&1
   cd $core > /dev/null 2>&1
 
-  find . -type f -exec sed -i "s/\/\.core/\/\.$name/g" {} +
-  find . -type f -exec sed -i "s/\~\/core/\~\/${name}-core/g" {} +
+  find . -type f -exec sed -i "s/\/\.core/\/\.$name/g" {} + > /dev/null 2>&1
+  find . -type f -exec sed -i "s/\~\/core/\~\/${name}-core/g" {} + > /dev/null 2>&1
 
   yarn setup > /dev/null 2>&1
   
