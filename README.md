@@ -1,4 +1,4 @@
-# Core v2 Management Tool - Typescript w/ Rebranding (edit project.conf)
+# Core v2 Management Tool - Typescript w/ Rebranding
 
 ## Installation 
 
